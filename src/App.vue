@@ -22,8 +22,6 @@
 
 
 <script setup>
-import router from './router';
-
 
 </script>
 
@@ -45,8 +43,8 @@ body {
 .router-nav {
   width: 100%;
   background-color: $semi-blue-dark;
-  padding: 1em;
-  position: fixed;
+  padding: 0.5em;
+  margin-bottom: 1em;
 
   ul {
     width: 100%;
