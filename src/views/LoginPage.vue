@@ -1,17 +1,15 @@
 <template>
     <main class="login-page">
-        <LoginForm />
-        <LoginFormFirebase />
-        <LoginSocial />
+        <!-- <LoginForm /> -->
+        <LoginFormFirebase/>
+        <!-- <LoginAWS /> -->
     </main>
 </template>
 
 <script setup>
-import LoginForm from '../components/LoginForm.vue';
+// import LoginAWS from '../components/LoginAWS.vue';
+// import LoginForm from '../components/LoginForm.vue';
 import LoginFormFirebase from '../components/LoginFormFirebase.vue';
-import LoginSocial from '../components/LoginSocial.vue';
-
-
 </script>
 
 <style scoped lang="scss">
