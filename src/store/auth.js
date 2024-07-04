@@ -11,6 +11,7 @@ export const useAuthStore = defineStore('auth', {
             //     id: string,
             //     username: string,
             //     email: string,
+            //     role: string,
             //     token: string,
             // }
         };
@@ -28,6 +29,7 @@ export const useAuthStore = defineStore('auth', {
         },
         logout() {
             this.user = null;
+            window.localStorage.removeItem('user-gym-stats');
         },
     },
 });

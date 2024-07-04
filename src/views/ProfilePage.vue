@@ -32,6 +32,7 @@
                     <div class="profile-page-aside-InformationGroup">
                         <p>{{ maxWeight().weight }}kg en {{ maxWeight().name }}</p>
                     </div>
+                    <button @click="logOut">Cerrar sesión</button>
                 </div>
                 <button @click="switchEditMode">{{ editMode ? 'Cancelar' : 'Editar Información' }}</button>
             </div>
@@ -185,6 +186,11 @@ const updateUser = () => {
     });
 }
 
+const logOut = () => {
+    authStore.logout();
+
+}
+
 const switchEditMode = () => {
     editMode.value = !editMode.value;
 }
@@ -205,7 +211,7 @@ const showRoutineToggle = (id) => {
     display: grid;
     grid-template-columns: 70% 30%;
     gap: 0.5em;
-    padding: 2em;
+    padding: 1em;
 
     .profile-page-aside {
         display: flex;
@@ -221,7 +227,7 @@ const showRoutineToggle = (id) => {
             border-radius: 1em;
             gap: 1em;
             min-height: 40%;
-            width: 100%;
+            width: 90%;
             font-size: 0.9em;
 
             h1 {
@@ -286,6 +292,9 @@ const showRoutineToggle = (id) => {
 
 
     .profile-page-main{
+        background-color: $semi-blue-dark;
+        padding: 1em;
+        border-radius: 1em;
         display: flex;
         flex-direction: column;
         gap: 1em;

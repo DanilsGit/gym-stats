@@ -1,42 +1,54 @@
 import { ref } from "vue";
+import axios from "axios";
 class AuthService {
 
     constructor() {
-        this.jwt = ref('');
         this.error = ref('');
     }
 
-    getJwt() {
-        return this.jwt;
-    }
-
     getError() {
-        return this.error;
+        return String(this.error.value);
     }
 
-    async login(username, password) {
+    async loginWithCredentials(email, password) {
         try {
-            const response = await fetch('https://dummyjson.com/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
+                email,
+                password
             });
-
-            const data = await response.json();
-
-            this.jwt.value = await data.token;
-
-            if ('message' in data) return false;
-
-            return true;
-        } catch (error) {
-            console.log(error);
+            return res.data;
+        } catch (err) {
+            this.error.value = err.response.data
+            return false;
         }
+    }
 
-        return false;
+    async register(username, email, password) {
+        try {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
+                username,
+                email,
+                password
+            });
+            return res.data;
+        } catch (err) {
+            this.error.value = err.response.data;
+            return false;
+    }
+}
+
+    async loginWithSocial(id, username, email){
+        try {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/login/social`, {
+                id,
+                username,
+                email
+            });
+            return res.data;
+        } catch (err) {
+            this.error.value = err.response.data;
+            return false;
+        }
     }
 }
 

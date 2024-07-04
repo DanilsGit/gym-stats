@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-amplify/ui-vue": "^4.2.8",
     "aws-amplify": "^6.3.8",
+    "axios": "^1.7.2",
     "firebase": "^10.12.2",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",

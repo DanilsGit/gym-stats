@@ -2,12 +2,13 @@
     <form @submit.prevent="loginUser" v-if="loginMode">
         <h1>Inicia sesión</h1>
         <div class="form-group">
-            <label for="email">Correo electrónico</label>
-            <input v-model="email" type="email" id="emailF" name="email" required>
+            <label for="emailL">Correo electrónico</label>
+            <input autocomplete="email" v-model="email" type="email" id="emailL" name="email" required>
         </div>
         <div class="form-group">
-            <label for="password">Contraseña</label>
-            <input v-model="password" type="password" id="passwordF" name="password" required>
+            <label for="passwordL">Contraseña</label>
+            <input autocomplete="current-password" v-model="password" type="password" id="passwordL" name="password"
+                required>
         </div>
         <p class="error" v-show="error">{{ error }}</p>
         <button type="submit">Iniciar sesión</button>
@@ -19,16 +20,22 @@
     <form @submit.prevent="register" v-else>
         <h1>Regístrate</h1>
         <div class="form-group">
-            <label for="email">Correo electrónico</label>
-            <input v-model="email" type="email" id="emailF" name="email" required>
+            <label for="usernameR">Username</label>
+            <input autocomplete="username" v-model="username" type="username" id="usernameR" name="username" required>
         </div>
         <div class="form-group">
-            <label for="password">Contraseña</label>
-            <input v-model="password" type="password" id="passwordF" name="passwordF" required>
+            <label for="emailR">Correo electrónico</label>
+            <input autocomplete="email" v-model="email" type="email" id="emailR" name="email" required>
         </div>
         <div class="form-group">
-            <label for="password">Confirmar contraseña</label>
-            <input v-model="confirm_password" type="password" id="confirm_passwordF" name="confirm_passwordF" required>
+            <label for="passwordR">Contraseña</label>
+            <input autocomplete="current-password" v-model="password" type="password" id="passwordR" name="passwordF"
+                required>
+        </div>
+        <div class="form-group">
+            <label for="confirm_passwordR">Confirmar contraseña</label>
+            <input autocomplete="current-password" v-model="confirm_password" type="password" id="confirm_passwordR"
+                name="confirm_passwordF" required>
         </div>
         <p class="error" v-show="error">{{ error }}</p>
         <button type="submit">Regístrate</button>
@@ -43,6 +50,9 @@ import { ref } from 'vue';
 // Importa funciones de firebase
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from 'firebase/auth';
+// Importa el servicio de autenticación del backend
+import AuthService from '../services/AuthService';
+
 
 // Importa estado global de auth
 import { useAuthStore } from '../store/auth';
@@ -55,6 +65,7 @@ const error = ref('');
 
 // Estados para el registro
 const confirm_password = ref('');
+const username = ref('');
 
 // Estados para el login a registro
 const loginMode = ref(true);
@@ -65,56 +76,63 @@ const switchLogin = () => {
 }
 
 // Función para registrar usuario
-const register = () => {
+const register = async () => {
     if (password.value !== confirm_password.value) {
         error.value = 'Las contraseñas no coinciden';
-        setTimeout(() => {
-            error.value = '';
-        }, 5000);
         return;
     }
-    console.log('Registrando usuario');
+    const authService = new AuthService();
+    try {
+        const res = await authService.register(username.value, email.value, password.value);
+        if (!res) throw new Error(authService.getError());
+        loginUser();
+    } catch (err) {
+        error.value = err.message;
+    }
+    
 }
 
 // Función para setear los datos en el store
-const setUserToStore = (username, email, token, id) => {
+const setUserToStore = (username, email, token, id, role) => {
     const user = {
         username,
         email,
         token,
-        id
+        id,
+        role
     }
     // Setea el usuario en el store
     authStorage.setUser(user);
 }
 
 const loginUser = async () => {
-    const auth = getAuth();
+    const authService = new AuthService();
     try {
-        const res = await signInWithEmailAndPassword(auth, email.value, password.value);
-        const token = res.user.accessToken;
-        authStorage.setUser(token);
-        console.log(res);
+        const res = await authService.loginWithCredentials(email.value, password.value);
+        if (!res) throw new Error(authService.getError());
+        const token = res.token;
+        const user = res.user;
+        setUserToStore(user.username, user.email, token, user.id);
     } catch (err) {
-        console.log(err.message);
-        error.value = 'Usuario o contraseña incorrectos';
-        setTimeout(() => {
-            error.value = '';
-        }, 5000);
+        error.value = err.message;
     }
 }
 
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-const auth = getAuth();
+
 
 const googleLogin = async () => {
+    const auth = getAuth();
+    const authService = new AuthService();
     try {
-        const res = await signInWithPopup(auth, googleProvider);
-        const credentials = GoogleAuthProvider.credentialFromResult(res);
+        await signInWithPopup(auth, googleProvider);
         const userData = getAuth().currentUser;
-        setUserToStore(userData.displayName, userData.email, credentials.accessToken, userData.uid)
+        const res = await authService.loginWithSocial(userData.uid, userData.displayName, userData.email);
+        const token = res.token;
+        const user = res.user;
+        setUserToStore(user.username, user.email, token, user.id, user.role);
     } catch (err) {
         console.log(err);
         error.value = err.message;
@@ -122,13 +140,15 @@ const googleLogin = async () => {
 }
 
 const facebookLogin = async () => {
+    const auth = getAuth();
+    const authService = new AuthService();
     try {
-        const res = await signInWithPopup(auth, facebookProvider);
-        const credentials = FacebookAuthProvider.credentialFromResult(res);
-        const token = credentials?.accessToken;
-        authStorage.setUser(token);
+        await signInWithPopup(auth, facebookProvider);
         const userData = getAuth().currentUser;
-        console.log(userData);
+        const res = await authService.loginWithSocial(userData.uid, userData.displayName, userData.email);
+        const token = res.token;
+        const user = res.user;
+        setUserToStore(user.username, user.email, token, user.id, user.role);
     } catch (err) {
         console.log(err);
         error.value = err.message;
