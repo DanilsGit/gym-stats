@@ -7,6 +7,7 @@ import ProfilePage from '../views/ProfilePage.vue'
 import InformationPage from '../views/InformationPage.vue'
 import SharedRoutinePage from '../views/SharedRoutinePage.vue'
 import { useAuthStore } from '../store/auth'
+import { computed } from 'vue'
 
 const routes = [
     {
@@ -66,19 +67,18 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
-    const needsAuth = to.meta.requiresAuth;
-    const isAuthenticated = authStore.isAuthenticated;
+    const isAuthenticated = computed(() => authStore.isAuthenticated).value;
 
-    if (needsAuth && !isAuthenticated) {
-        next('/login');
-    } else {
-        next();
-    }
-
+    // Si el usuario está intentando acceder a login pero ya está autenticado, redirige a profile
     if (to.name === 'login' && isAuthenticated) {
         next('/profile');
+    } else if (to.meta.requiresAuth && !isAuthenticated) {
+        // Si la ruta requiere autenticación y el usuario no está autenticado, redirige a login
+        next('/login');
+    } else {
+        // En cualquier otro caso, simplemente continúa con la navegación
+        next();
     }
-
 });
 
 export default router

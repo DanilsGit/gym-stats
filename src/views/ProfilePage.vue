@@ -1,40 +1,59 @@
 <template>
-
     <section class="profile-page">
         <section class="profile-page-main">
-            <h2>Rutinas</h2>
-            <Routine v-for="routine in routines" :key="routine.id" :routine="routine" :showRoutineToggle="showRoutineToggle" />
+            <header>
+                <h2>Mis Rutinas</h2>
+                <p style="color: red;">
+                    {{ error }}
+                </p>
+                <AddButton text="Rutina" @click="addNewRoutine" />
+            </header>
+            <Routine v-for="routine in routines" :key="routine.id" :routine="routine" v-if="!loading"
+                :showRoutineToggle="showRoutineToggle" :toggleExerciseShow="toggleExerciseShow"
+                :deleteRoutine="deleteRoutine" :addExercise="addExercise" :saveExercise="saveExercise"
+                :deleteExercise="deleteExercise" :addSet="addSet" :saveRoutineName="saveRoutineName"
+                :saveExerciseName="saveExerciseName"
+                :removeSet="removeSet" 
+                />
+            <div v-else class="loading">
+                <p>Cargando...</p>
+            </div>
         </section>
         <section class="profile-page-aside">
             <div class="profile-page-aside-content">
                 <h1>{{ editMode ? 'Editar Información' : 'Sobre ti' }}</h1>
                 <form class="profile-page-aside-information-edit" v-if="editMode" @submit.prevent="updateUser">
                     <div class="profile-page-aside-InformationGroup aside-group-container">
-                        <label for="name">Nombre</label>
-                        <input type="text" id="name" name="name" value="Name" v-model="username" />
+                        <label for="name">Usuario</label>
+                        <input autocomplete="username" type="text" id="name" name="name" v-model="username" />
                     </div>
                     <div class="profile-page-aside-InformationGroup">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" value="Email" v-model="email" />
+                        <input class="deny-edit" autocomplete="email" type="email" id="email" name="email"
+                            v-model="email" readonly />
                     </div>
                     <button type="submit">Guardar cambios</button>
                 </form>
                 <div v-else class="profile-page-aside-information-display aside-group-container">
                     <div class="profile-page-aside-InformationGroup">
+                        <h3>Nombre</h3>
                         <p>{{ username }}</p>
                     </div>
                     <div class="profile-page-aside-InformationGroup">
+                        <h3>Correo</h3>
                         <p>{{ email }}</p>
                     </div>
                     <div class="profile-page-aside-InformationGroup">
+                        <h3>Rutinas</h3>
                         <p>{{ countRoutines() }} Rutinas</p>
                     </div>
                     <div class="profile-page-aside-InformationGroup">
+                        <h3>Mayor peso levantado</h3>
                         <p>{{ maxWeight().weight }}kg en {{ maxWeight().name }}</p>
                     </div>
-                    <button @click="logOut">Cerrar sesión</button>
                 </div>
                 <button @click="switchEditMode">{{ editMode ? 'Cancelar' : 'Editar Información' }}</button>
+                <button v-if="!editMode" @click="logOut">Cerrar sesión</button>
             </div>
         </section>
     </section>
@@ -42,111 +61,26 @@
 
 <script setup>
 
+import AddButton from '../components/AddButton.vue';
 import Routine from '../components/Routine.vue';
 import { useAuthStore } from '../store/auth';
 import { ref } from 'vue';
+import { RoutinesService } from '../services/RoutinesService';
+import { onBeforeMount } from 'vue';
 
+const MyRoutineService = new RoutinesService();
+const loading = ref(true);
+let routines = ref([]);
+let error = ref('');
+const loadingSave = ref(false);
 
-const routines = [
-    {
-        id: 1,
-        show: false,
-        name: 'Rutina Brazos',
-        exercises: [
-            {
-                id: 1,
-                name: 'Extensión de tríceps en polea',
-                sets: [
-                    {
-                        reps: 12,
-                        weight: 80,
-                        note: 'Nota 1'
-                    },
-                    {
-                        reps: 11,
-                        weight: 80,
-                        note: null
-                    },
-                    {
-                        reps: 10,
-                        weight: 80,
-                        note: 'Nota 3'
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: 'Curl de bíceps con barra',
-                sets: [
-                    {
-                        reps: 12,
-                        weight: 30,
-                        note: null
-                    },
-                    {
-                        reps: 11,
-                        weight: 30,
-                        note: null
-                    },
-                    {
-                        reps: 10,
-                        weight: 30,
-                        note: null
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        id: 2,
-        show: false,
-        name: 'Rutina Piernas',
-        exercises: [
-            {
-                id: 3,
-                name: 'Sentadillas',
-                sets: [
-                    {
-                        reps: 12,
-                        weight: 80,
-                        note: null
-                    },
-                    {
-                        reps: 11,
-                        weight: 80,
-                        note: null
-                    },
-                    {
-                        reps: 10,
-                        weight: 80,
-                        note: null
-                    }
-                ]
-            },
-            {
-                id: 4,
-                name: 'Prensa',
-                sets: [
-                    {
-                        reps: 12,
-                        weight: 80,
-                        note: null
-                    },
-                    {
-                        reps: 11,
-                        weight: 80,
-                        note: null
-                    },
-                    {
-                        reps: 10,
-                        weight: 80,
-                        note: null
-                    }
-                ]
-            }
-        ]
-    }
-]
+onBeforeMount(async () => {
+    await MyRoutineService.getUserRoutines();
+    MyRoutineService.watchError();
+    routines = MyRoutineService.userRoutines;
+    error = MyRoutineService.error;
+    loading.value = false;
+})
 
 const authStore = useAuthStore();
 const user = authStore.user;
@@ -155,16 +89,275 @@ const username = ref(user.username);
 const email = ref(user.email);
 const editMode = ref(false);
 
-const countRoutines = () => {
-    return routines.length;
+// Función para cerrar todas las rutinas menos la seleccionada
+const closeAllRoutine = (select) => {
+    routines.value.forEach(routine => {
+        if (routine.id !== select) {
+            routine.show = false;
+        } else {
+            routine.show = true;
+        }
+    })
 }
 
+// Función para cerrar todos los ejercicios menos el seleccionado
+const closeAllExercise = (select) => {
+    routines.value.forEach(routine => {
+        routine.exercises.forEach(exercise => {
+            if (exercise.id !== select) {
+                exercise.show = false;
+            } else {
+                exercise.show = true;
+            }
+        })
+    })
+}
+
+// Función para agregar una nueva rutina
+const addNewRoutine = () => {
+    // Si ya hay una rutina nueva, no agregar otra
+    const newRoutine = routines.value.find(routine => routine.id === 'new');
+    if (newRoutine) {
+        alert('Primero guarda un ejercicio en la nueva rutina antes de agregar otra');
+        return;
+    }
+
+    // Cerrar todas las rutinas menos la nueva
+    closeAllRoutine('new');
+
+    // Agregar nueva rutina
+    routines.value.push({
+        id: 'new',
+        show: true,
+        name: 'Nueva Rutina',
+        exercises: []
+    });
+}
+
+// Función para eliminar una rutina
+const deleteRoutine = async (e, routineId) => {
+
+    if (routineId === 'new') {
+        const newRoutines = routines.value.filter(routine => routine.id !== 'new');
+        routines.value = newRoutines;
+        return;
+    }
+
+    e.stopPropagation();
+    const routine = routines.value.find(routine => routine.id === routineId);
+    const accept = confirm(`¿Estás seguro de eliminar ${routine.name}?`);
+    if (!accept) return;
+    await MyRoutineService.deleteUserRoutine(routineId);
+}
+
+// Función para guardar una rutina
+const saveRoutine = async () => {
+    // Guardar la rutina
+    const newRoutine = routines.value.find(routine => routine.id === 'new');
+    if (!newRoutine) return;
+    if (!newRoutine.name) {
+        alert('Cambia el nombre de la rutina');
+        return;
+    }
+    await MyRoutineService.createUserRoutine(newRoutine);
+}
+
+// Función para guardar el nombre de una rutina
+const saveRoutineName = async (routineId, name) => {
+    if (routineId === 'new') {
+        const newRoutines = routines.value.map(routine => {
+            if (routine.id === 'new') {
+                routine.name = name;
+            }
+            return routine;
+        });
+        routines.value = newRoutines;
+        return;
+    }
+    await MyRoutineService.updateNameRoutine(routineId, name);
+}
+
+// Función para agregar un nuevo ejercicio
+const addExercise = (e, routineId) => {
+    e.stopPropagation();
+
+    // Si ya existe una rutina con id 'newExercise', no agregar otra
+    const newExercise = routines.value.some(routine => routine.exercises.some(exercise => exercise.id === 'newExercise'));
+    if (newExercise) {
+        alert('Primero guarda el ejercicio nuevo antes de agregar otro');
+        return;
+    };
+
+    // Cierra todas las rutinas
+    closeAllRoutine(routineId);
+
+    // Agregar nuevo ejercicio a la rutina
+    const newRoutine = routines.value.map(routine => {
+        if (routine.id === routineId) {
+            routine.exercises.push({
+                id: 'newExercise',
+                name: 'Nuevo Ejercicio',
+                sets: []
+            });
+        }
+        return routine;
+    });
+    routines.value = newRoutine;
+
+    // Cierra todos los ejercicios menos el seleccionado
+    closeAllExercise('newExercise');
+}
+
+// Función para saber si el ejercicio tiene sets válidos
+const hasValidSets = (sets) => {
+    if (sets.length === 0) return false;
+    return sets.every(set => set.reps && set.weight && set.rest);
+}
+
+// Función para guardar un ejercicio
+const saveExercise = async (id) => {
+    // Si existe una rutina con ejercicio con id 'newExercise'
+    const newRoutine = routines.value.find(routine => routine.exercises.some(exercise => exercise.id === id));
+    const exercise = newRoutine.exercises.find(exercise => exercise.id === id);
+
+    if (!exercise) return;
+    if (!exercise.name) {
+        alert('Cambia el nombre del ejercicio');
+        return;
+    }
+
+    // Verificar si el ejercicio es nuevo
+    if (newRoutine && exercise.id === 'newExercise') {
+        // Verificar si las series son válidas
+        if (!hasValidSets(exercise.sets)) {
+            alert('Agrega series válidas antes de guardar el ejercicio');
+            return;
+        }
+        // Si es nuevo y tiene las series válidas y la rutina es nueva, guardar la rutina
+        // (esto guarda el ejercicio también)
+        if (newRoutine.id === 'new') {
+            saveRoutine();
+        } else {
+            // Si la rutina no es nueva, pero el ejercicio sí, crear el ejercicio
+            await createExercise(newRoutine.id, exercise);
+        }
+    } else {
+        // Si el ejercicio no es nuevo, la rutina tampoco es nueva, guardar el ejercicio
+        const newSets = exercise.sets.map(set => {
+            return {
+                id_set: set.id === 'newSet' ? null : set.id,
+                reps: set.reps,
+                weight: set.weight,
+                note: set.note,
+                rest: set.rest
+            }
+        });
+        const newExercise = {
+            idExercise: exercise.id,
+            name: exercise.name,
+            sets: newSets
+        }
+        console.log(newExercise);
+        await MyRoutineService.updateExercise(newExercise);
+    }
+
+    // Cierra todos los ejercicios
+    closeAllExercise(null);
+}
+
+// Función para crear un ejercicio a la bd
+const createExercise = async (routineId, exercise) => {
+    const newExercise = {
+        idRoutine: routineId,
+        name: exercise.name,
+        sets: exercise.sets
+    }
+    await MyRoutineService.createExercise(newExercise);
+}
+
+// Función para guardar el nombre de un ejercicio
+const saveExerciseName = async (exerciseId, name) => {
+    if (exerciseId === 'newExercise') return;
+    await MyRoutineService.updateExerciseName(exerciseId, name);
+}
+
+// Función para eliminar un ejercicio
+const deleteExercise = async (e, exerciseId) => {
+    e.stopPropagation();
+    const accept = confirm('¿Estás seguro de eliminar este ejercicio?');
+    if (!accept) return;
+    if (exerciseId === 'newExercise') {
+        const newRoutines = routines.value.map(routine => {
+            routine.exercises = routine.exercises.filter(exercise => exercise.id !== 'newExercise');
+            return routine;
+        });
+        routines.value = newRoutines;
+        return;
+    }
+    await MyRoutineService.deleteExercise(exerciseId);
+}
+
+// Función para agregar una nueva serie
+const addSet = (e, exerciseId) => {
+    e.stopPropagation();
+
+    // Cierra todos los ejercicios menos el seleccionado
+    routines.value.forEach(routine => {
+        routine.exercises.forEach(exercise => {
+            if (exercise.id !== exerciseId) {
+                exercise.show = false;
+            } else {
+                exercise.show = true;
+            }
+        })
+    })
+
+    // Agregar una nueva serie al ejercicio
+    const newRoutine = routines.value.map(routine => {
+        routine.exercises = routine.exercises.map(exercise => {
+            if (exercise.id === exerciseId) {
+                exercise.sets.push({
+                    id: 'newSet',
+                    reps: 12,
+                    weight: 40,
+                    note: 'Mantener la técnica',
+                    rest: 2
+                });
+            }
+            return exercise;
+        });
+        return routine;
+    });
+    routines.value = newRoutine;
+}
+
+// Función para quitar una serie
+const removeSet = (setId) => {
+    const newRoutine = routines.value.map(routine => {
+        routine.exercises = routine.exercises.map(exercise => {
+            exercise.sets = exercise.sets.filter(set => set.id !== setId);
+            return exercise;
+        });
+        return routine;
+    });
+    routines.value = newRoutine;
+}
+
+// Función para contar las rutinas
+const countRoutines = () => {
+    return routines.value.length;
+}
+
+// Función para obtener el mayor peso levantado
 const maxWeight = () => {
     let info = {
         weight: 0,
         name: ''
     }
-    routines.forEach(routine => {
+    if (loading.value || routines.value.length === 0) {
+        return info;
+    }
+    routines.value.forEach(routine => {
         routine.exercises.forEach(exercise => {
             exercise.sets.forEach(set => {
                 if (set.weight > info.weight) {
@@ -177,6 +370,37 @@ const maxWeight = () => {
     return info;
 }
 
+// Función para mostrar u ocultar una rutina
+const showRoutineToggle = (id) => {
+    // Cambia el estado de la rutina, y cierra las demás
+    routines.value.forEach(routine => {
+        if (routine.id === id) {
+            routine.show = !routine.show;
+        } else {
+            routine.show = false;
+        }
+    })
+}
+
+// Función para mostrar u ocultar un ejercicio
+const toggleExerciseShow = (id) => {
+    routines.value.forEach(routine => {
+        routine.exercises.forEach(exercise => {
+            if (exercise.id === id) {
+                exercise.show = !exercise.show;
+            } else {
+                exercise.show = false;
+            }
+        })
+    })
+}
+
+// Función para cambiar el modo de edición en el perfil
+const switchEditMode = () => {
+    editMode.value = !editMode.value;
+}
+
+// Función para actualizar la información del usuario
 const updateUser = () => {
     authStore.setUser({
         username: username.value,
@@ -186,22 +410,10 @@ const updateUser = () => {
     });
 }
 
+// Función para cerrar sesión
 const logOut = () => {
     authStore.logout();
 
-}
-
-const switchEditMode = () => {
-    editMode.value = !editMode.value;
-}
-
-const showRoutineToggle = (id) => {
-    routines.forEach(routine => {
-        if (routine.id === id) {
-            routine.show = !routine.show;
-        }
-    })
-    console.log(id);
 }
 
 </script>
@@ -226,7 +438,7 @@ const showRoutineToggle = (id) => {
             padding: 1em;
             border-radius: 1em;
             gap: 1em;
-            min-height: 40%;
+            max-height: 50em;
             width: 90%;
             font-size: 0.9em;
 
@@ -247,6 +459,8 @@ const showRoutineToggle = (id) => {
             button:hover {
                 background-color: $semi-blue-light;
             }
+
+
 
             .aside-group-container {
                 display: flex;
@@ -276,6 +490,11 @@ const showRoutineToggle = (id) => {
                         color: $semi-white;
                         border-bottom: 2px solid #9aa4ff;
                     }
+
+                    .deny-edit {
+                        cursor: not-allowed;
+                        color: #ffffff41;
+                    }
                 }
             }
 
@@ -291,13 +510,35 @@ const showRoutineToggle = (id) => {
     }
 
 
-    .profile-page-main{
+    .profile-page-main {
         background-color: $semi-blue-dark;
         padding: 1em;
         border-radius: 1em;
         display: flex;
         flex-direction: column;
         gap: 1em;
+        min-height: 90vh;
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1em;
+            flex-wrap: wrap;
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+        }
+    }
+
+}
+
+@media screen and (max-width: 1000px) {
+    .profile-page {
+        display: flex;
+        flex-direction: column-reverse;
     }
 
 }

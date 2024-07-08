@@ -1,6 +1,8 @@
 // Creación de la aplicación Vue
 import { createApp } from 'vue'
 import App from './App.vue'
+
+// Importar router
 import router from './router/index'
 
 // Import Firebase
@@ -12,6 +14,13 @@ import awsExports from './aws-exports'
 
 // Import Pinia
 import { createPinia } from 'pinia'
+
+// Importar persistencia de Pinia
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
+// Importar íconos de oh-vue-icons
+import { OhVueIcon, addIcons } from 'oh-vue-icons';
+import { HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt   } from "oh-vue-icons/icons"
 
 // Configuración de Amplify
 Amplify.configure(awsExports)
@@ -32,7 +41,14 @@ initializeApp(firebaseConfig);
 
 // Configuración de Pinia
 const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+pinia.use(({ store }) => {
+    store.router = router;
+});
+
+// Añadir los íconos de oh-vue-icons
+addIcons( HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt  );
 
 // Creación de la aplicación Vue
-createApp(App).use(pinia).use(router).mount('#app')
+createApp(App).component("v-icon", OhVueIcon).use(pinia).use(router).mount('#app')
 

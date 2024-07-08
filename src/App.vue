@@ -28,12 +28,12 @@
 
 
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { useAuthStore } from './store/auth';
-const auth = useAuthStore();
+const authStore = useAuthStore();
 
-const isAuthenticated = ref(auth.isAuthenticated);
-const user = ref(auth.user);
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const user = computed(() => authStore.user);
 
 </script>
 
@@ -44,19 +44,24 @@ body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: 16px;
   color: $semi-white;
-  @media screen and (max-width: 1200px){
+
+  @media screen and (max-width: 1200px) {
     font-size: 15px;
   }
-  @media screen and (max-width: 1050px){
+
+  @media screen and (max-width: 1050px) {
     font-size: 14px;
   }
-  @media screen and (max-width: 900px){
+
+  @media screen and (max-width: 900px) {
     font-size: 13px;
   }
-  @media screen and (max-width: 750px){
+
+  @media screen and (max-width: 750px) {
     font-size: 12px;
   }
-  @media screen and (max-width: 600px){
+
+  @media screen and (max-width: 600px) {
     font-size: 11px;
   }
 }
@@ -65,6 +70,35 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-size: 1em;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  /* Propiedad estándar */
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  /* Firefox */
+  appearance: textfield;
+  /* Propiedad estándar para compatibilidad */
+}
+
+.hidden-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  /* Añadir para asegurar que el texto no se desborde */
+  border: 0;
 }
 
 .router-nav {

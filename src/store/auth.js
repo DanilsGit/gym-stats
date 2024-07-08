@@ -4,8 +4,7 @@ import { defineStore } from "pinia";
 export const useAuthStore = defineStore('auth', {
     state: () => {
         return {
-            // Recoger user del localStorage, sino null
-            user: window.localStorage.getItem('user-gym-stats') ? JSON.parse(window.localStorage.getItem('user-gym-stats')) : null,
+            user: null
             // El user es un objeto con la siguiente estructura:
             // {
             //     id: string,
@@ -24,14 +23,14 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         setUser(user) {
             this.user = user;
-            console.log('User set:', user);
-            window.localStorage.setItem('user-gym-stats', JSON.stringify(user));
+            if (user) this.router.push({ name: 'profile' });
         },
         logout() {
             this.user = null;
-            window.localStorage.removeItem('user-gym-stats');
+            this.router.push({ name: 'login' });
         },
     },
+    persist: true,
 });
 
 
