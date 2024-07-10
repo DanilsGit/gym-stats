@@ -20,7 +20,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 // Importar íconos de oh-vue-icons
 import { OhVueIcon, addIcons } from 'oh-vue-icons';
-import { HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt   } from "oh-vue-icons/icons"
+import { FaShareSquare, IoWarning, CoCheck, IoReloadCircle, HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt   } from "oh-vue-icons/icons"
 
 // Configuración de Amplify
 Amplify.configure(awsExports)
@@ -47,7 +47,7 @@ pinia.use(({ store }) => {
 });
 
 // Añadir los íconos de oh-vue-icons
-addIcons( HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt  );
+addIcons( FaShareSquare, IoWarning, CoCheck, IoReloadCircle, HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt  );
 
 // Creación de la aplicación Vue
 createApp(App).component("v-icon", OhVueIcon).use(pinia).use(router).mount('#app')

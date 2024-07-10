@@ -5,7 +5,8 @@ import LoginPage from '../views/LoginPage.vue'
 import RoutinesPage from '../views/RoutinesPage.vue'
 import ProfilePage from '../views/ProfilePage.vue'
 import InformationPage from '../views/InformationPage.vue'
-import SharedRoutinePage from '../views/SharedRoutinePage.vue'
+import PublicRoutinePage from '../views/PublicRoutinePage.vue'
+import PublicProfile from '../views/PublicProfile.vue'
 import { useAuthStore } from '../store/auth'
 import { computed } from 'vue'
 
@@ -35,6 +36,14 @@ const routes = [
         }
     },
     {
+        path: '/profile/:id',
+        name: 'public-profile',
+        component: PublicProfile,
+        meta: {
+            requiresAuth: false
+        }
+    },
+    {
         path: '/routines',
         name: 'routines',
         component: RoutinesPage,
@@ -43,9 +52,9 @@ const routes = [
         }
     },
     {
-        path: '/shared-routine',
-        name: 'shared-routine',
-        component: SharedRoutinePage,
+        path: '/public-routine/:id',
+        name: 'public-routine',
+        component: PublicRoutinePage,
         meta: {
             requiresAuth: false
         }

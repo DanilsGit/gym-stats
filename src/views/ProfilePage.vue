@@ -1,5 +1,5 @@
 <template>
-    <section class="profile-page">
+    <main class="profile-page">
         <section class="profile-page-main">
             <header>
                 <h2>Mis Rutinas</h2>
@@ -12,9 +12,7 @@
                 :showRoutineToggle="showRoutineToggle" :toggleExerciseShow="toggleExerciseShow"
                 :deleteRoutine="deleteRoutine" :addExercise="addExercise" :saveExercise="saveExercise"
                 :deleteExercise="deleteExercise" :addSet="addSet" :saveRoutineName="saveRoutineName"
-                :saveExerciseName="saveExerciseName"
-                :removeSet="removeSet" 
-                />
+                :saveExerciseName="saveExerciseName" :removeSet="removeSet" :saveDescription="saveRoutineDescription" />
             <div v-else class="loading">
                 <p>Cargando...</p>
             </div>
@@ -56,7 +54,7 @@
                 <button v-if="!editMode" @click="logOut">Cerrar sesión</button>
             </div>
         </section>
-    </section>
+    </main>
 </template>
 
 <script setup>
@@ -78,7 +76,7 @@ onBeforeMount(async () => {
     await MyRoutineService.getUserRoutines();
     MyRoutineService.watchError();
     routines = MyRoutineService.userRoutines;
-    error = MyRoutineService.error;
+    error = MyRoutineService.getError();
     loading.value = false;
 })
 
@@ -164,6 +162,10 @@ const saveRoutine = async () => {
 
 // Función para guardar el nombre de una rutina
 const saveRoutineName = async (routineId, name) => {
+    if (!name) {
+        alert('Cambia el nombre de la rutina');
+        return;
+    }
     if (routineId === 'new') {
         const newRoutines = routines.value.map(routine => {
             if (routine.id === 'new') {
@@ -175,6 +177,12 @@ const saveRoutineName = async (routineId, name) => {
         return;
     }
     await MyRoutineService.updateNameRoutine(routineId, name);
+}
+
+// Función para guardar la descripción de una rutina
+const saveRoutineDescription = async (routineId, description) => {
+    if (routineId === 'new') return;
+    await MyRoutineService.updateDescriptionRoutine(routineId, description);
 }
 
 // Función para agregar un nuevo ejercicio
@@ -277,6 +285,10 @@ const createExercise = async (routineId, exercise) => {
 
 // Función para guardar el nombre de un ejercicio
 const saveExerciseName = async (exerciseId, name) => {
+    if (!name) {
+        alert('Cambia el nombre del ejercicio');
+        return;
+    }
     if (exerciseId === 'newExercise') return;
     await MyRoutineService.updateExerciseName(exerciseId, name);
 }

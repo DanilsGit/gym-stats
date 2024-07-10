@@ -1,10 +1,10 @@
 <template>
-    <div>
+    <main>
         <h1>Home Page</h1>
         <p>Welcome to the home page</p>
         <p v-if="auth.isAuthenticated">Logged in as {{ auth.user }}</p>
         <p v-else>Not logged in</p>
-    </div>
+    </main>
 </template>
 
 <script setup>

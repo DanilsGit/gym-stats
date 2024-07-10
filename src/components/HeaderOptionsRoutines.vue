@@ -8,10 +8,10 @@
             <v-icon class="row-icon-black" v-else name="md-keyboardarrowup" />
             <input class="OneLine EditableTitle" type="text" v-model="focus.name" @click.stop v-if="isTitleEditable" />
             <h2 class="OneLine" v-else>{{ focus.name }}</h2>
-            <button @click="(e) => editTitleRoutine(e)" v-if="!isTitleEditable">
+            <button @click="(e) => editTitleRoutine(e, focus.name)" v-if="!isTitleEditable">
                 <v-icon name="fa-regular-edit" scale="1.2" color="#fff" />
             </button>
-            <button @click="(e) => { saveName(focus.id, focus.name); editTitleRoutine(e) }" v-else>
+            <button @click="(e) => { saveName(focus.id, focus.name); editTitleRoutine(e, focus.name) }" v-else>
                 <v-icon name="la-save-solid" scale="1.2" color="#fff" />
             </button>
         </div>
@@ -34,8 +34,9 @@ const props = defineProps({
 
 const isTitleEditable = ref(false);
 
-const editTitleRoutine = (e) => {
+const editTitleRoutine = (e, name) => {
     e.stopPropagation();
+    if (!name) return;
     isTitleEditable.value = !isTitleEditable.value;
 }
 

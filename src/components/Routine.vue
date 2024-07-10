@@ -3,6 +3,17 @@
         <div class="routine-header">
             <HeaderOptionsRoutines :focus="routine" :showToggle="showRoutineToggle" :deleteFocus="deleteRoutine"
                 :addToFocus="addExercise" :text-add="'Ejercicio'" :saveName="saveRoutineName" />
+            <div class="routine-info">
+                <textarea class="routine-textarea" v-model="routine.description" v-if="isDescriptionEditable"
+                    placeholder="Descripción de la rutina"></textarea>
+                <p v-else>{{ routine.description }}</p>
+                <button v-if="!isDescriptionEditable" @click="toggleDescriptionEdit">
+                    Editar descripción
+                </button>
+                <button v-else @click="()=>{toggleDescriptionEdit(); saveDescription(routine.id, routine.description)}">
+                    Guardar descripción
+                </button>
+            </div>
         </div>
         <div :class="{ 'show-content': true, 'show': routine.show }">
             <ul class="routine-exercises">
@@ -15,7 +26,7 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, ref } from 'vue';
 import RoutineExercise from './RoutineExercise.vue';
 import HeaderOptionsRoutines from './HeaderOptionsRoutines.vue';
 
@@ -31,7 +42,15 @@ const props = defineProps({
     saveRoutineName: Function,
     saveExerciseName: Function,
     removeSet: Function,
+    saveDescription: Function,
 });
+
+const isDescriptionEditable = ref(false);
+
+const toggleDescriptionEdit = () => {
+    isDescriptionEditable.value = !isDescriptionEditable.value;
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -46,6 +65,40 @@ const props = defineProps({
     font-size: 0.9em;
     scrollbar-color: $semi-white transparent;
     scrollbar-width: thin;
+
+    .routine-info {
+
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+
+        .routine-textarea {
+            background-color: $semi-blue-dark;
+            width: 100%;
+            color: $semi-white;
+            border: none;
+            border-radius: 0.5em;
+            padding: 0.5em;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+
+        button {
+            background-color: $semi-blue;
+            color: $semi-white;
+            border: none;
+            border-radius: 0.5em;
+            padding: 0.5em;
+            cursor: pointer;
+            transition: background-color 0.5s;
+
+            &:hover {
+                background-color: $semi-blue-dark;
+            }
+        }
+    }
+
+
 
     .show-content {
         max-height: 0;

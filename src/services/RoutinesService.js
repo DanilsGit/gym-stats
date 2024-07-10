@@ -8,11 +8,17 @@ export class RoutinesService {
     constructor() {
         this.routines = ref([]);
         this.userRoutines = ref([]);
-        this.error = ref(null);
+        this.error = ref('');
     }
 
     getError() {
-        return String(this.error.value);
+        let err = String(this.error.value);
+        if (err.includes('Token de autorización inválido')) {
+            err = 'Sesión expirada, por favor inicia sesión nuevamente';
+            const authStore = useAuthStore();
+            authStore.logout();
+        }
+        return err;
     }
 
     // Watch para quitar el error en 3s
@@ -20,7 +26,7 @@ export class RoutinesService {
         watch(this.error, () => {
             setTimeout(() => {
                 this.error.value = null;
-            }, 3000);
+            }, 5000);
         });
     }
 
@@ -29,13 +35,22 @@ export class RoutinesService {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/routines`);
             this.routines.value = res.data;
-            console.log(res.data);
         } catch (err) {
             this.error.value = err.response.data
             console.log(err);
         }
     }
 
+    // Traer una rutina por su id
+    async getRoutineById(routineId) {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/routines/${routineId}`);
+            return res.data;
+        } catch (err) {
+            this.error.value = err.response.data
+            console.log(err);
+        }
+    }
 
     // USUARIOS
 
@@ -88,6 +103,26 @@ export class RoutinesService {
         }
     }
 
+    // Actualizar la descripción de la rutina del usuario
+    async updateDescriptionRoutine(routineId, description) {
+        const authStore = useAuthStore();
+        const token = authStore.user.token;
+        try {
+            await axios.put(`${import.meta.env.VITE_API_URL}/users/routines/description`,
+                {
+                    id: routineId,
+                    description
+                }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        } catch (err) {
+            this.error.value = err.response.data
+            console.log(err);
+        }
+    }
+
     // Crear una nueva rutina para el usuario
     async createUserRoutine(routine) {
         const authStore = useAuthStore();
@@ -107,12 +142,32 @@ export class RoutinesService {
         }
     }
 
+    // Copiar una rutina de la comunidad al usuario
+    async copyRoutine(routine) {
+        const authStore = useAuthStore();
+        const token = authStore.user.token;
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/routines/copy`,
+                routine
+                , {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            return true;
+        } catch (err) {
+            this.error.value = err.response.data
+            console.log(err);
+            return false;
+        }
+    }
+
     // Eliminar una rutina del usuario
     async deleteUserRoutine(routineId) {
         const authStore = useAuthStore();
         const token = authStore.user.token;
         try {
-            const res = await axios.delete(`${import.meta.env.VITE_API_URL}/users/routines/${routineId}`, {
+            await axios.delete(`${import.meta.env.VITE_API_URL}/users/routines/${routineId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
