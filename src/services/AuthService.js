@@ -46,6 +46,7 @@ class AuthService {
             });
             return res.data;
         } catch (err) {
+            console.log(err);
             this.error.value = err.response.data;
             return false;
         }

@@ -2,7 +2,7 @@
 
     <main>
         <p style="font-size: 1em; color: #f00" v-if="error">{{ error }}</p>
-        <h1 v-else>¡Te han compartido esta rutina!</h1>
+        <h1 v-else>¡Rutina compartida!</h1>
         <section v-if="routine" class="routine-container">
             <PublicRoutine :routine="routine" :toggleShowRoutine="toggleShowRoutine">
             </PublicRoutine>
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref } from 'vue';
+import { onBeforeMount, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router'
 import { RoutinesService } from '../services/RoutinesService';
 import PublicRoutine from '../components/PublicRoutine.vue';
@@ -23,11 +23,11 @@ let error = ref(null)
 let routine = ref(null)
 
 const toggleShowRoutine = (id) => {
-    routine.value = { ...routine.value, show: !routine.value.show}
+    routine.value = { ...routine.value, show: !routine.value.show }
 }
 
 onBeforeMount(async () => {
-    document.title = 'Rutina compartida'
+    document.title = '¡Te han compartido esta rutina!'
     try {
         const data = await myRoutineService.getRoutineById(id);
         routine.value = data;
@@ -35,6 +35,10 @@ onBeforeMount(async () => {
     } catch (error) {
         error.value = 'Error al cargar la rutina, por favor reporta este error al administrador'
     }
+})
+
+onUnmounted(() => {
+    document.title = 'Gym stats'
 })
 
 
@@ -49,6 +53,7 @@ main {
 
     .routine-container {
         width: 90%;
+        min-height: 90vh;
     }
 
     h1 {

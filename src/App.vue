@@ -3,23 +3,30 @@
     <ul>
       <li>
         <router-link :to="{ name: 'home' }">
-          <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="logo" />
+          <img src="https://firebasestorage.googleapis.com/v0/b/gym-stats-e3823.appspot.com/o/icons%2Flogo.jfif?alt=media&token=74741f66-82e9-4760-9cd5-9463b5be06b8" alt="logo" />
         </router-link>
       </li>
       <li>
         <router-link :to="{ name: 'home' }">Principal</router-link>
       </li>
-      <li v-show="!isAuthenticated">
+      <li v-if="!isAuthenticated">
         <router-link :to="{ name: 'information' }">Información</router-link>
       </li>
-      <li v-show="isAuthenticated">
+      <li v-else>
         <router-link :to="{ name: 'routines' }">Rutinas</router-link>
       </li>
       <li v-if="!isAuthenticated">
         <router-link :to="{ name: 'login' }">Inicia sesión</router-link>
       </li>
       <li v-else>
-        <router-link :to="{ name: 'profile' }">{{ user.username }}</router-link>
+        <router-link :to="{ name: 'profile' }">
+          <p class="p-username">
+            {{ user.username }}
+          </p>
+          <div class="icon-user">
+            <v-icon name="fa-user-circle" scale="1.5" color="#fff" />
+          </div>
+        </router-link>
       </li>
     </ul>
   </nav>
@@ -38,10 +45,27 @@ const user = computed(() => authStore.user);
 </script>
 
 <style lang="scss">
+
+@media screen and (max-width: 700px) {
+  .p-username {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 700px) {
+  .icon-user {
+    display: none;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inder&family=Varta:wght@300..700&display=swap');
+
 body {
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
   background-color: $semi-blue;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-family: 'Varta', sans-serif;
   font-size: 16px;
   color: $semi-white;
 
@@ -104,8 +128,7 @@ input[type="number"] {
 .router-nav {
   width: 100%;
   background-color: $semi-blue-dark;
-  padding: 0.5em;
-  margin-bottom: 0.5em;
+  font-size: 1.1em;
 
   ul {
     width: 100%;
@@ -117,7 +140,9 @@ input[type="number"] {
       list-style: none;
 
       img {
-        width: 9em;
+        width: 3.5em;
+        height: 3.5em;
+        border-radius: 50%;
       }
 
       a {

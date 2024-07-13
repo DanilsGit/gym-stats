@@ -16,24 +16,22 @@
                         </button>
                     </div>
                     <v-icon v-else scale="1.5" name="io-warning" color="#fff" animation="ring" />
-                    <button @click="shareRoutine($event, routine.id)" class="share-btn">
-                        <Transition>
-                            <div class="share-tooltip" v-if="shared">
-                                <p>
-                                    Enlace copiado!
-                                </p>
-                            </div>
-                        </Transition>
-                        <v-icon name="fa-share-square" scale="1.5" color="#fff" />
-                    </button>
+                    <ShareProfileButton :routeCopy="'/public-routine/' + routine.id" />
                 </div>
             </div>
             <p>
                 {{ routine.description }}
             </p>
-            <p>Creador <button @click="(e) => goToProfile(e, routine.user.id)"><span>{{
-                routine.user.username
-                        }}</span></button></p>
+            <p v-if="routine.user">
+                Creador
+                <button @click="(e) => goToProfile(e, routine.user.id)">
+                    <span>
+                        {{
+                            routine.user.username
+                        }}
+                    </span>
+                </button>
+            </p>
         </button>
         <p style="color: red" v-if="errorCopy">
             {{ error }}
@@ -75,8 +73,9 @@
 
 <script setup>
 import { RoutinesService } from '../services/RoutinesService';
-import { ref, Transition, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import ShareProfileButton from './ShareProfileButton.vue';
 const router = useRouter()
 
 const props = defineProps({
@@ -154,20 +153,6 @@ const goToProfile = (e, usernameId) => {
     router.push({ name: 'public-profile', params: { id: usernameId } })
 }
 
-// Función para compartir una rutina
-const shareRoutine = (e, id) => {
-    e.stopPropagation();
-    const link = window.location.origin + '/public-routine/' + id;
-    navigator.clipboard.writeText(link)
-        .then(() => {
-            shared.value = true;
-        })
-        .catch(err => {
-            console.error('Error al copiar al portapapeles: ', err);
-        });
-}
-
-
 
 </script>
 
@@ -205,7 +190,8 @@ span {
     display: flex;
     flex-direction: column;
     gap: 1em;
-    background-color: $semi-blue-dark;
+    background-color: $semi-blue-cards;
+    border: 2px solid $semi-blue-light;
 
     .routine-header {
         display: flex;
@@ -225,20 +211,6 @@ span {
                 display: flex;
                 gap: 1em;
                 align-items: center;
-
-                .share-btn {
-                    position: relative;
-
-                    .share-tooltip {
-                        position: absolute;
-                        width: 5em;
-                        background-color: $semi-white;
-                        color: #000;
-                        padding: 0.5em;
-                        left: calc(50% - 2.5em);
-                        border-radius: 0.5em;
-                    }
-                }
             }
         }
     }
@@ -275,6 +247,7 @@ span {
                 .exercise-info.showSets {
                     max-height: 90vh;
                     transition: max-height 0.5s;
+                    overflow: auto;
                 }
 
                 .set-info {
@@ -300,31 +273,9 @@ span {
     }
 
     .routine-exercises.showExercises {
-        max-height: 90vh !important;
+        max-height: 120vh;
         transition: max-height 0.5s;
+        overflow: auto;
     }
-}
-
-.v-enter-active,
-.v-leave-active {
-    transition: opacity 0.5s, transform 0.5s;
-}
-
-.v-enter-from {
-    opacity: 0;
-    transform: translateY(-150%);
-}
-
-.v-enter-to {
-    opacity: 1;
-}
-
-.v-leave-from {
-    opacity: 1;
-}
-
-.v-leave-to {
-    opacity: 0;
-    transform: translateY(-150%);
 }
 </style>

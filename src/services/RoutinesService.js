@@ -31,10 +31,26 @@ export class RoutinesService {
     }
 
     // Traer todas las rutinas de la base de datos
-    async getRoutines() {
+    async getRoutines(offset, limit, search) {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/routines`);
-            this.routines.value = res.data;
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/routines`, {
+                params: {
+                    offset,
+                    limit,
+                    search: search || ''
+                }
+            });
+
+            const pages = await res.data.pages;
+            const newRoutines = await res.data.routines.map(routine => {
+                const user = routine.users[0];
+                return { ...routine , user };
+            });
+            return {
+                routines: newRoutines,
+                pages
+            }
+
         } catch (err) {
             this.error.value = err.response.data
             console.log(err);
@@ -52,17 +68,26 @@ export class RoutinesService {
         }
     }
 
-    // USUARIOS
+    // Traer las rutinas de un usuario por su id, sin autenticación
+    async getRoutinesAndInfoByUserId(userId) {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/routines/${userId}`);
+            return res.data;
+        } catch (err) {
+            this.error.value = err.response.data
+            console.log(err);
+        }
+    }
 
+    // USUARIOS
 
     // Traer las rutinas del usuario, por medio de autenticación
     async getUserRoutines() {
         const authStore = useAuthStore();
         const user = authStore.user;
         const token = user.token;
-        const userId = user.id;
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}/routines`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/routines`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

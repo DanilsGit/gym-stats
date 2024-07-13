@@ -34,7 +34,9 @@
                     </div>
                     <div class="Set-group group-textarea">
                         <label class="hidden-label" :for="'note' + set.id">Observaciones</label>
-                        <textarea :id="'note' + set.id" v-model="set.note"></textarea>
+                        <textarea :id="'note' + set.id" v-model="set.note"
+                        placeholder="Observaciones a tener en cuenta en este set"
+                        ></textarea>
                     </div>
                 </li>
             </ul>

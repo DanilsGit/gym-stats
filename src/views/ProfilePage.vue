@@ -1,6 +1,6 @@
 <template>
-    <main class="profile-page">
-        <section class="profile-page-main">
+    <ProfileLayout>
+        <template #main>
             <header>
                 <h2>Mis Rutinas</h2>
                 <p style="color: red;">
@@ -16,45 +16,52 @@
             <div v-else class="loading">
                 <p>Cargando...</p>
             </div>
-        </section>
-        <section class="profile-page-aside">
-            <div class="profile-page-aside-content">
+        </template>
+        <template #aside>
+            <header>
                 <h1>{{ editMode ? 'Editar Información' : 'Sobre ti' }}</h1>
-                <form class="profile-page-aside-information-edit" v-if="editMode" @submit.prevent="updateUser">
-                    <div class="profile-page-aside-InformationGroup aside-group-container">
-                        <label for="name">Usuario</label>
-                        <input autocomplete="username" type="text" id="name" name="name" v-model="username" />
-                    </div>
-                    <div class="profile-page-aside-InformationGroup">
-                        <label for="email">Email</label>
-                        <input class="deny-edit" autocomplete="email" type="email" id="email" name="email"
-                            v-model="email" readonly />
-                    </div>
-                    <button type="submit">Guardar cambios</button>
-                </form>
-                <div v-else class="profile-page-aside-information-display aside-group-container">
-                    <div class="profile-page-aside-InformationGroup">
+                <ShareProfileButton :routeCopy="'/profile/' + user.id" />
+            </header>
+            <form class="profile-page-aside-information-edit" v-if="editMode" @submit.prevent="updateUser">
+                <div class="profile-page-aside-InformationGroup aside-group-container">
+                    <label for="name">Usuario</label>
+                    <input autocomplete="username" type="text" id="name" name="name" v-model="username" />
+                </div>
+                <div class="profile-page-aside-InformationGroup">
+                    <label for="email">Email</label>
+                    <input class="deny-edit" autocomplete="email" type="email" id="email" name="email" v-model="email"
+                        readonly />
+                </div>
+                <p style="color: red;">
+                    {{ errUsername }}
+                </p>
+                <button type="submit">Guardar cambios</button>
+            </form>
+            <div class="asideLayout" v-else>
+                <ProfileAsideLayout>
+                    <template #slot1>
                         <h3>Nombre</h3>
                         <p>{{ username }}</p>
-                    </div>
-                    <div class="profile-page-aside-InformationGroup">
+                    </template>
+                    <template #slot2>
                         <h3>Correo</h3>
                         <p>{{ email }}</p>
-                    </div>
-                    <div class="profile-page-aside-InformationGroup">
+                    </template>
+                    <template #slot3>
                         <h3>Rutinas</h3>
-                        <p>{{ countRoutines() }} Rutinas</p>
-                    </div>
-                    <div class="profile-page-aside-InformationGroup">
+                        <p>{{ routines.length }} Rutinas</p>
+                    </template>
+                    <template #slot4>
                         <h3>Mayor peso levantado</h3>
                         <p>{{ maxWeight().weight }}kg en {{ maxWeight().name }}</p>
-                    </div>
-                </div>
-                <button @click="switchEditMode">{{ editMode ? 'Cancelar' : 'Editar Información' }}</button>
-                <button v-if="!editMode" @click="logOut">Cerrar sesión</button>
+                    </template>
+                </ProfileAsideLayout>
             </div>
-        </section>
-    </main>
+            <button @click="switchEditMode">{{ editMode ? 'Cancelar' : 'Editar Información' }}</button>
+            <button v-if="!editMode" @click="logOut">Cerrar sesión</button>
+
+        </template>
+    </ProfileLayout>
 </template>
 
 <script setup>
@@ -64,20 +71,36 @@ import Routine from '../components/Routine.vue';
 import { useAuthStore } from '../store/auth';
 import { ref } from 'vue';
 import { RoutinesService } from '../services/RoutinesService';
+import { UserService } from '../services/UserService';
 import { onBeforeMount } from 'vue';
+import ProfileLayout from '../layouts/ProfileLayout.vue';
+import ProfileAsideLayout from '../layouts/ProfileAsideLayout.vue';
+import ShareProfileButton from '../components/ShareProfileButton.vue';
 
+// Servicio de rutinas
 const MyRoutineService = new RoutinesService();
 const loading = ref(true);
 let routines = ref([]);
 let error = ref('');
 const loadingSave = ref(false);
 
+// Servicio de usuario
+const myUserService = new UserService();
+const errUsername = ref('');
+
+
 onBeforeMount(async () => {
-    await MyRoutineService.getUserRoutines();
-    MyRoutineService.watchError();
-    routines = MyRoutineService.userRoutines;
-    error = MyRoutineService.getError();
-    loading.value = false;
+    try {
+        await MyRoutineService.getUserRoutines();
+        MyRoutineService.watchError();
+        routines = MyRoutineService.userRoutines;
+        error = MyRoutineService.getError();
+        loading.value = false;
+    } catch (error) {
+        console.log(error);
+        error.value = 'Ocurrió un error al cargar tus rutinas';
+        loading.value = false;
+    }
 })
 
 const authStore = useAuthStore();
@@ -86,6 +109,29 @@ const user = authStore.user;
 const username = ref(user.username);
 const email = ref(user.email);
 const editMode = ref(false);
+
+// Función para obtener el mayor peso levantado
+const maxWeight = () => {
+    let info = {
+        weight: 0,
+        name: 'todo'
+    }
+
+    if (loading.value) return info;
+
+    routines.value.forEach(routine => {
+        routine.exercises.forEach(exercise => {
+            exercise.sets.forEach(set => {
+                if (set.weight > info.weight) {
+                    info.weight = set.weight;
+                    info.name = exercise.name;
+                }
+            })
+        })
+    })
+
+    return info;
+}
 
 // Función para cerrar todas las rutinas menos la seleccionada
 const closeAllRoutine = (select) => {
@@ -331,8 +377,8 @@ const addSet = (e, exerciseId) => {
                 exercise.sets.push({
                     id: 'newSet',
                     reps: 12,
-                    weight: 40,
-                    note: 'Mantener la técnica',
+                    weight: 0,
+                    note: '',
                     rest: 2
                 });
             }
@@ -355,32 +401,7 @@ const removeSet = (setId) => {
     routines.value = newRoutine;
 }
 
-// Función para contar las rutinas
-const countRoutines = () => {
-    return routines.value.length;
-}
 
-// Función para obtener el mayor peso levantado
-const maxWeight = () => {
-    let info = {
-        weight: 0,
-        name: ''
-    }
-    if (loading.value || routines.value.length === 0) {
-        return info;
-    }
-    routines.value.forEach(routine => {
-        routine.exercises.forEach(exercise => {
-            exercise.sets.forEach(set => {
-                if (set.weight > info.weight) {
-                    info.weight = set.weight;
-                    info.name = exercise.name;
-                }
-            })
-        })
-    })
-    return info;
-}
 
 // Función para mostrar u ocultar una rutina
 const showRoutineToggle = (id) => {
@@ -410,16 +431,31 @@ const toggleExerciseShow = (id) => {
 // Función para cambiar el modo de edición en el perfil
 const switchEditMode = () => {
     editMode.value = !editMode.value;
+    username.value = authStore.user.username;
 }
 
 // Función para actualizar la información del usuario
-const updateUser = () => {
-    authStore.setUser({
-        username: username.value,
-        email: email.value,
-        id: user.id,
-        token: user.token
-    });
+const updateUser = async () => {
+    try {
+
+        const data = await myUserService.updateUsername(username.value);
+
+        if (!data) throw new Error('No se pudo actualizar el usuario');
+
+        authStore.setUser({
+            username: username.value,
+            email: email.value,
+            id: user.id,
+            token: user.token
+        });
+
+
+
+        switchEditMode();
+    } catch (err) {
+        const error = myUserService.getError();
+        errUsername.value = error;
+    }
 }
 
 // Función para cerrar sesión
@@ -431,127 +467,83 @@ const logOut = () => {
 </script>
 
 <style scoped lang="scss">
-.profile-page {
-    display: grid;
-    grid-template-columns: 70% 30%;
-    gap: 0.5em;
-    padding: 1em;
+h1 {
+    text-align: center;
+}
 
-    .profile-page-aside {
-        display: flex;
-        justify-content: center;
-        align-items: start;
+button {
+    padding: 0.5em;
+    border: none;
+    border-radius: 5px;
+    background-color: $semi-blue;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.5s;
+}
 
-        .profile-page-aside-content {
-            background-color: $semi-blue-dark;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            padding: 1em;
-            border-radius: 1em;
-            gap: 1em;
-            max-height: 50em;
-            width: 90%;
-            font-size: 0.9em;
+button:hover {
+    background-color: $semi-blue-light;
+}
 
-            h1 {
-                text-align: center;
-            }
+.aside-group-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
 
-            button {
-                padding: 0.5em;
-                border: none;
-                border-radius: 5px;
-                background-color: $semi-blue;
-                color: #fff;
-                cursor: pointer;
-                transition: 0.5s;
-            }
+.profile-page-aside-information-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
 
-            button:hover {
-                background-color: $semi-blue-light;
-            }
-
-
-
-            .aside-group-container {
-                display: flex;
-                flex-direction: column;
-                gap: 1em;
-            }
-
-            .profile-page-aside-information-edit {
-                display: flex;
-                flex-direction: column;
-                gap: 1em;
-
-                .profile-page-aside-InformationGroup {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5em;
-
-                    label {
-                        font-weight: 600;
-                    }
-
-                    input {
-                        padding: 0.5em;
-                        background-color: transparent;
-                        outline: none;
-                        border: none;
-                        color: $semi-white;
-                        border-bottom: 2px solid #9aa4ff;
-                    }
-
-                    .deny-edit {
-                        cursor: not-allowed;
-                        color: #ffffff41;
-                    }
-                }
-            }
-
-            .profile-page-aside-information-display {
-                .profile-page-aside-InformationGroup {
-                    p {
-                        padding: 0.5em;
-                        border-bottom: 2px solid #ccc;
-                    }
-                }
-            }
-        }
+    input {
+        padding: 0.5em;
+        background-color: transparent;
+        outline: none;
+        border: none;
+        color: $semi-white;
+        border-bottom: 2px solid #9aa4ff;
     }
 
+    label {
+        font-weight: 600;
+    }
 
-    .profile-page-main {
-        background-color: $semi-blue-dark;
-        padding: 1em;
-        border-radius: 1em;
+    .deny-edit {
+        cursor: not-allowed;
+        color: #ffffff41;
+    }
+
+    .profile-page-aside-InformationGroup {
         display: flex;
         flex-direction: column;
-        gap: 1em;
-        min-height: 90vh;
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1em;
-            flex-wrap: wrap;
-
-            h2 {
-                font-size: 1.5em;
-            }
-
-        }
+        gap: 0.5em;
     }
-
 }
 
-@media screen and (max-width: 1000px) {
-    .profile-page {
-        display: flex;
-        flex-direction: column-reverse;
+.asideLayout {
+    p {
+        padding: 0.5em;
+        border-bottom: 2px solid #ccc;
     }
-
 }
+
+
+
+
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+    flex-wrap: wrap;
+
+    h2 {
+        font-size: 1.5em;
+    }
+}
+
+
+
 </style>
