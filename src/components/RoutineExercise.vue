@@ -45,7 +45,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import HeaderOptionsRoutines from './HeaderOptionsRoutines.vue';
 
 const props = defineProps({
