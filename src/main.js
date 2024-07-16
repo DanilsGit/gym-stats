@@ -8,10 +8,6 @@ import router from './router/index'
 // Import Firebase
 import { initializeApp } from "firebase/app";
 
-// Import Amplify
-import { Amplify } from 'aws-amplify'
-import awsExports from './aws-exports'
-
 // Import Pinia
 import { createPinia } from 'pinia'
 
@@ -22,8 +18,6 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { OhVueIcon, addIcons } from 'oh-vue-icons';
 import { FaUserCircle, FaShareSquare, IoWarning, CoCheck, IoReloadCircle, HiSolidClipboardCopy, LaSaveSolid, IoTimeSharp, GiWeight, MdRepeat, FaRegularEdit, MdKeyboardarrowdown, MdKeyboardarrowup, MdAddcircleoutline, FaTrashAlt   } from "oh-vue-icons/icons"
 
-// Configuración de Amplify
-Amplify.configure(awsExports)
 
 // Configuración de Firebase
 const firebaseConfig = {
