@@ -12,7 +12,7 @@ Please note, if you encounter any issues accessing the site, make sure to use ht
 - **Customizable Workouts**: Customize your routines with your preferred exercises and adjust sets based on your progress.
 - **Notes**: Add notes to exercises to remember specific details.
 - **Community Routines**: Explore, copy, and modify public routines shared by the community.
-- 
+
 ### Preview
 ![Page](https://firebasestorage.googleapis.com/v0/b/portfolio-38c72.appspot.com/o/projects%2Fgymstats.png?alt=media&token=2b847b2f-bedf-4dba-a410-ebc7c55bd020)
 
