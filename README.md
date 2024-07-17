@@ -22,4 +22,5 @@ Please note, if you encounter any issues accessing the site, make sure to use ht
 - **Backend**: Go
 - **Containerization**: Docker
 - **Database**: PostgreSQL
+- **Deploy**: EC2 AWS
 
