@@ -4,7 +4,7 @@
 
 ## Website
 Check out the live version of GymStats [here](http://gymstats.duckdns.org/)
-Please note, if you encounter any issues accessing the site, make sure to use http instead of https as it is hosted on an AWS EC2 instance.
+Please note that if you encounter any issues accessing the site, try using HTTP instead of HTTPS since it is hosted on an AWS EC2 instance. However, I have also provided a Netlify https link, which is available 24/7.
  
 ## Features
 
