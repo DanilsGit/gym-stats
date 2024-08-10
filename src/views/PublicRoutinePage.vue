@@ -49,8 +49,7 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2em;
-
+    
     .routine-container {
         width: 90%;
         min-height: 90vh;
@@ -58,7 +57,7 @@ main {
 
     h1 {
         font-size: 2em;
-        margin-bottom: 1rem;
+        margin: 1em 0em;
     }
 }
 </style>

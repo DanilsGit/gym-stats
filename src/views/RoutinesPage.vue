@@ -25,11 +25,13 @@
             <button @click="nextPage">{{ '➡' }}</button>
         </section>
     </main>
+    <Footer></Footer>
 </template>
 
 <script setup>
 import { ref, onBeforeMount, watch } from 'vue'
 import { RoutinesService } from '../services/RoutinesService'
+import Footer from '../components/Footer.vue'
 import PublicRoutine from '../components/PublicRoutine.vue'
 
 const routines = ref([])
@@ -71,6 +73,8 @@ const searchToDB = async () => {
         loading.value = false
         if (routines.value.length === 0) {
             error.value = 'No hay rutinas disponibles'
+        }else{
+            error.value = ''
         }
     } catch (error) {
         console.error(error)
@@ -127,6 +131,8 @@ const nextPage = async () => {
 h1 {
     font-size: 2em;
     margin: 1em 0em;
+    text-align: center;
+    width: 95%;
 }
 
 .routines-page {
@@ -136,6 +142,8 @@ h1 {
     align-items: center;
     gap: 1em;
     min-height: 90vh;
+    padding-bottom: 2em;
+
 
     .search-container {
         display: flex;

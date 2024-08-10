@@ -104,6 +104,8 @@ main {
     h1 {
         font-size: 3em;
         margin: 1em 0em;
+        width: 90%;
+        text-align: center;
     }
 
 

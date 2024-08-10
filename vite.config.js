@@ -6,8 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [vue(),VitePWA({
     manifest: {
-      name: "Gym stats",
-      short_name: "Gym stats | Crea, personaliza y comparte tus rutinas",
+      name: "Gym stats | Crea, personaliza y comparte tus rutinas",
+      short_name: "Gym stats",
       start_url: "/",
       display: "standalone",
       background_color: "#10283d",
